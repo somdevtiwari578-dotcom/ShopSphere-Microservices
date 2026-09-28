@@ -1,98 +1,566 @@
-# ShopSphere - Interview Oriented Microservices
+# ShopSphere – E-Commerce Microservices
 
-A simple Java 17 + Spring Boot e-commerce microservices project designed for learning and interviews.
+ShopSphere is a backend-focused E-Commerce application built using a Microservices Architecture.
 
-## Services
-- Eureka Server: 8761
-- API Gateway: 8080
-- User Service: 8081
-- Product Service: 8082
-- Order Service: 8083
+The project is developed using Java and Spring Boot and demonstrates practical implementation of service discovery, API Gateway, JWT authentication, role-based authorization, inter-service communication, REST APIs, and MySQL database integration.
 
-## Technologies
-Java 17, Spring Boot 3.5.16, Spring Cloud 2025.0.0, Spring Web, Spring Security, JWT (JJWT), BCrypt, Spring Data JPA, MySQL, Eureka, API Gateway, OpenFeign, Maven, JUnit.
+---
 
-## Architecture
-Client -> API Gateway -> Eureka -> User/Product/Order Services
+## 🚀 Features
 
-Order Service -> OpenFeign -> Product Service
+- User Registration
+- User Login
+- JWT Authentication
+- Role-Based Authorization
+- Admin Authentication
+- Product Management
+- Order Management
+- Service Discovery using Eureka
+- API Gateway
+- Inter-Service Communication using OpenFeign
+- Password Encryption using BCrypt
+- MySQL Database Integration
+- RESTful APIs
+- Bean Validation
+- Postman API Testing
 
-Each business service owns a separate MySQL database.
+---
 
-## Security Flow
-1. User registers with `/users/register`.
-2. User logs in using `/users/login`.
-3. User Service verifies the BCrypt password.
-4. User Service generates a signed JWT containing email and role.
-5. Client sends `Authorization: Bearer <token>` with protected requests.
-6. Product and Order Services validate the JWT before allowing the request.
-7. Product creation is restricted to `ADMIN`; orders require authentication.
+## 🛠️ Technologies Used
 
-## Demo Accounts
-### Admin
-- Email: `admin@shopsphere.com`
-- Password: `admin123`
-- Role: `ADMIN`
+| Technology | Purpose |
+|------------|---------|
+| Java 17 | Programming Language |
+| Spring Boot | Backend Development |
+| Spring Cloud | Microservices Infrastructure |
+| Spring Cloud Netflix Eureka | Service Discovery |
+| Spring Cloud Gateway | API Gateway |
+| Spring Security | Application Security |
+| JWT | Authentication |
+| BCrypt | Password Encryption |
+| Spring Data JPA | Database Operations |
+| OpenFeign | Microservice Communication |
+| MySQL | Database |
+| Maven | Build and Dependency Management |
+| Postman | API Testing |
+| IntelliJ IDEA | Development Environment |
 
-The admin account is automatically created when User Service starts.
+---
 
-### Normal User
-Register your own user using `/users/register` with a password. New registrations always receive the `USER` role.
+# 🏗️ Microservices Architecture
 
-## Run
-1. Start MySQL.
-2. Start `eureka-server`.
-3. Start `user-service`.
-4. Start `product-service`.
-5. Start `order-service`.
-6. Start `api-gateway`.
-7. Import `postman/ShopSphere-Microservices.postman_collection.json`.
+The project is divided into independent microservices.
 
-Default MySQL credentials are `root/root`. Change them in each service's `application.properties` if required.
+```text
+                         Client / Postman
+                                |
+                                v
+                       +------------------+
+                       |   API Gateway    |
+                       |      :8080       |
+                       +--------+---------+
+                                |
+             +------------------+------------------+
+             |                  |                  |
+             v                  v                  v
+     +---------------+  +---------------+  +---------------+
+     | User Service  |  |Product Service|  | Order Service |
+     |     :8081     |  |     :8082     |  |     :8083     |
+     +-------+-------+  +-------+-------+  +-------+-------+
+             |                  |                  |
+             v                  v                  v
+       MySQL Database     MySQL Database     MySQL Database
 
-## Important APIs
-### Authentication
-POST `/users/register`
-```json
-{"name":"Rahul","email":"rahul@example.com","password":"rahul123"}
-```
+                    +----------------------+
+                    |    Eureka Server     |
+                    |        :8761         |
+                    +----------------------+
+📦 Microservices
+1. Eureka Server
 
-POST `/users/login`
-```json
-{"email":"rahul@example.com","password":"rahul123"}
-```
+Port: 8761
 
-The response contains a JWT token. Copy it into the Postman `token` variable or send it manually as a Bearer token.
+Eureka Server acts as the Service Registry of the application.
 
-### Products
-POST `/products` - ADMIN only
-```json
-{"name":"Laptop","price":55000,"stock":10}
-```
+All microservices register themselves with Eureka. It allows services to discover each other without using hard-coded service addresses.
 
-GET `/products` - authenticated user
-GET `/products/{id}` - authenticated user
+Responsibilities
+Service Registration
+Service Discovery
+Monitoring registered services
 
-### Orders
-POST `/orders` - authenticated user
-```json
-{"userId":1,"productId":1,"quantity":2}
-```
+Eureka Dashboard:
 
-GET `/orders` - authenticated user
-GET `/orders/{id}` - authenticated user
+http://localhost:8761
+2. API Gateway
 
-Use Gateway at `http://localhost:8080`.
+Port: 8080
 
-## Interview Explanation
-- **Spring Boot:** creates independent microservices quickly.
-- **Eureka:** service discovery; services find each other by name.
-- **API Gateway:** one entry point for the client.
-- **JWT:** stateless authentication; the token carries the user's identity and role.
-- **Spring Security:** protects APIs and checks roles.
-- **BCrypt:** hashes passwords before storing them.
-- **OpenFeign:** Order Service calls Product Service without manually writing HTTP client code.
-- **JPA:** Repository methods handle basic database operations without writing SQL.
-- **Separate databases:** each business service owns its own data.
+API Gateway acts as the single entry point for client requests.
 
-The project intentionally avoids Kafka, Redis, Kubernetes and other advanced infrastructure so the complete code stays easy to explain in an interview.
+Instead of directly communicating with individual services, clients can send requests through the API Gateway.
+
+Responsibilities
+Request Routing
+Single Entry Point
+Communication with Microservices
+Integration with Eureka Service Discovery
+
+Example:
+
+Client
+   |
+   v
+API Gateway :8080
+   |
+   +----> User Service :8081
+   |
+   +----> Product Service :8082
+   |
+   +----> Order Service :8083
+3. User Service
+
+Port: 8081
+
+User Service is responsible for user management and authentication.
+
+Features
+User Registration
+User Login
+Password Encryption
+JWT Token Generation
+User Roles
+Authentication
+User Roles
+
+The application supports:
+
+USER
+ADMIN
+Default Admin Account
+Email: admin@shopsphere.com
+Password: admin123
+Role: ADMIN
+4. Product Service
+
+Port: 8082
+
+Product Service manages products available in the e-commerce application.
+
+Features
+Create Product
+Get Products
+Product Information Management
+Admin-based Product Creation
+Example Product
+{
+  "name": "Laptop",
+  "description": "Gaming Laptop",
+  "price": 55000
+}
+5. Order Service
+
+Port: 8083
+
+Order Service manages customer orders.
+
+Features
+Create Order
+Get Orders
+Calculate Total Price
+Store Order Information
+Communication with User and Product Services
+Example Order Request
+{
+  "userId": 2,
+  "productId": 1,
+  "quantity": 2
+}
+
+If the product price is:
+
+55000
+
+and quantity is:
+
+2
+
+Then:
+
+55000 × 2 = 110000
+
+The order is stored in MySQL.
+
+Example database record:
+
++----+------------+----------+-------------+---------+
+| id | product_id | quantity | total_price | user_id |
++----+------------+----------+-------------+---------+
+|  1 |          1 |        2 |      110000 |       2 |
++----+------------+----------+-------------+---------+
+🔐 Authentication and Security
+
+ShopSphere uses Spring Security and JWT for authentication.
+
+Authentication Flow
+User
+  |
+  v
+Login
+  |
+  v
+User Service
+  |
+  v
+Validate Email and Password
+  |
+  v
+Generate JWT
+  |
+  v
+Return JWT Token
+  |
+  v
+Client sends JWT with requests
+  |
+  v
+JWT Validation
+  |
+  v
+Authenticated Request
+
+JWT is sent using the Authorization header:
+
+Authorization: Bearer <JWT_TOKEN>
+
+Passwords are never stored as plain text.
+
+BCrypt is used for password hashing and secure password storage.
+
+🔄 Microservice Communication
+
+ShopSphere uses OpenFeign for communication between microservices.
+
+For example, when creating an order, the Order Service can communicate with other services to retrieve required information.
+
+                 Order Service
+                      |
+             +--------+--------+
+             |                 |
+             v                 v
+       User Service      Product Service
+          :8081               :8082
+
+OpenFeign provides a simple way to call another microservice using Java interfaces.
+
+🗄️ Database Architecture
+
+MySQL is used as the database.
+
+Each major microservice has its own database.
+
+shopsphere_users
+shopsphere_products
+shopsphere_orders
+Users Database
+
+Stores:
+
+User ID
+Name
+Email
+Password
+Role
+Products Database
+
+Stores:
+
+Product ID
+Name
+Description
+Price
+Orders Database
+
+Stores:
+
+Order ID
+User ID
+Product ID
+Quantity
+Total Price
+📁 Project Structure
+ShopSphere-Microservices/
+│
+├── eureka-server/
+│   └── Service Discovery
+│
+├── api-gateway/
+│   └── API Gateway
+│
+├── user-service/
+│   └── User Management & Authentication
+│
+├── product-service/
+│   └── Product Management
+│
+├── order-service/
+│   └── Order Management
+│
+├── postman/
+│   └── Postman API Collection
+│
+├── ARCHITECTURE.md
+├── RUNNING-GUIDE.md
+├── README.md
+└── .gitignore
+⚙️ Prerequisites
+
+Before running the project, make sure the following are installed:
+
+Java 17 or higher
+Maven
+MySQL
+IntelliJ IDEA
+Postman
+🗃️ Database Setup
+
+Open MySQL and create the required databases:
+
+CREATE DATABASE shopsphere_users;
+
+CREATE DATABASE shopsphere_products;
+
+CREATE DATABASE shopsphere_orders;
+
+The application will create the required tables automatically through JPA/Hibernate configuration.
+
+▶️ How to Run the Project
+
+Start the services in the following order.
+
+Step 1 – Start Eureka Server
+
+Run:
+
+eureka-server
+
+Port:
+
+8761
+
+Open:
+
+http://localhost:8761
+Step 2 – Start User Service
+
+Run:
+
+user-service
+
+Port:
+
+8081
+Step 3 – Start Product Service
+
+Run:
+
+product-service
+
+Port:
+
+8082
+Step 4 – Start Order Service
+
+Run:
+
+order-service
+
+Port:
+
+8083
+Step 5 – Start API Gateway
+
+Run:
+
+api-gateway
+
+Port:
+
+8080
+
+After starting all services, Eureka Dashboard should show the registered services.
+
+🧪 Postman Testing
+
+A Postman collection is included in the project.
+
+Location:
+
+postman/ShopSphere-Microservices.postman_collection.json
+
+The collection contains requests for:
+
+Register User
+Login User
+Login Admin
+Get Products
+Create Product
+Create Order
+Get Orders
+🔗 Important API Endpoints
+User APIs
+Register User
+POST /users/register
+
+Example:
+
+{
+  "name": "Rahul",
+  "email": "rahul@example.com",
+  "password": "rahul123"
+}
+Login
+POST /users/login
+Product APIs
+Get Products
+GET /products
+Create Product
+POST /products
+
+Admin authentication is required.
+
+Example:
+
+{
+  "name": "Laptop",
+  "description": "Gaming Laptop",
+  "price": 55000
+}
+Order APIs
+Create Order
+POST /orders
+
+Example:
+
+{
+  "userId": 2,
+  "productId": 1,
+  "quantity": 2
+}
+Get Orders
+GET /orders
+🔄 Complete Request Flow
+
+Example: Creating an order
+
+User
+ |
+ | Login
+ v
+User Service
+ |
+ | JWT Token
+ v
+Client / Postman
+ |
+ | POST /orders + JWT
+ v
+API Gateway
+ |
+ v
+Order Service
+ |
+ +------> User Service
+ |
+ +------> Product Service
+ |
+ v
+Calculate Total Price
+ |
+ v
+Save Order
+ |
+ v
+MySQL
+🧠 Key Concepts Demonstrated
+
+This project demonstrates practical implementation of:
+
+Microservices Architecture
+Service Discovery
+API Gateway
+REST APIs
+JWT Authentication
+Spring Security
+Role-Based Authorization
+BCrypt Password Hashing
+OpenFeign
+Spring Data JPA
+MySQL
+Entity Mapping
+Bean Validation
+Exception Handling
+Maven
+Postman API Testing
+🎯 Project Objective
+
+The main objective of ShopSphere is to demonstrate how an e-commerce backend can be developed using a distributed microservices architecture.
+
+The application separates major business responsibilities into independent services:
+
+User Management
+       |
+       v
+User Service
+
+Product Management
+       |
+       v
+Product Service
+
+Order Management
+       |
+       v
+Order Service
+
+This separation makes the application easier to maintain and allows individual services to be developed and scaled independently.
+
+🚀 Future Improvements
+
+The following features can be added in future versions:
+
+Docker and Docker Compose
+Payment Service
+Notification Service
+Redis Caching
+Kafka / RabbitMQ
+Centralized Configuration
+Resilience4j Circuit Breaker
+Distributed Tracing
+Cloud Deployment
+CI/CD Pipeline
+📌 Project Status
+
+Completed and tested locally.
+
+The following components have been successfully implemented and tested:
+
+User Registration
+User Login
+JWT Authentication
+Admin Authentication
+Product Creation
+Product Retrieval
+Order Creation
+MySQL Database Integration
+Eureka Service Discovery
+API Gateway
+OpenFeign Communication
+Postman API Testing
+👨‍💻 Author
+
+Somdev Tiwari
+
+GitHub:
+
+https://github.com/somdevtiwari578-dotcom
